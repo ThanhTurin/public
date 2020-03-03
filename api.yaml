@@ -1,0 +1,934 @@
+openapi: 3.0.0
+info:
+  title: User Lists API
+  version: "1"
+  description: REST API for user-lists (or also call user-collections) - to be different with collections made by Viki CMS. 
+paths:
+  /v4/user-lists.json:
+    get:
+      operationId: getCollections
+      summary: Retrieve collections made by users.
+      tags:
+        - user-lists
+      responses:
+        '200':
+          $ref: '#/components/responses/collection_page_response'
+        '400':
+          $ref: '#/components/responses/bad_request'
+        '5XX':
+          $ref: '#/components/responses/internal_server_error'
+      parameters:
+        - $ref: '#/components/parameters/with_paging'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - $ref: '#/components/parameters/sort'
+        - name: featured
+          in: query
+          description: A flag on CMS. Send "true" for fan collections (display on home/explore page). Don't send if needs all collections. 
+          schema:
+            type: boolean
+            example: true
+    post: 
+      operationId: createCollection
+      summary: Create a new collection with given information.
+      tags: 
+        - user-lists
+      responses:
+        '200':
+          $ref: '#/components/responses/update_collection_response'
+        '400':
+          $ref: '#/components/responses/bad_request'
+        '5XX':
+          $ref: '#/components/responses/internal_server_error'
+      parameters:
+        - $ref: '#/components/parameters/app'
+        - $ref: '#/components/parameters/timestamp'
+        - $ref: '#/components/parameters/sig'
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestBody_collection_info'
+
+  /v4/users/{user_id}/user-lists.json:
+    get:
+      operationId: getUserCollections
+      summary: Retrieve collections from a specific user.
+      tags:
+        - user-lists
+      responses:
+        '200':
+          $ref: '#/components/responses/collection_page_response'
+        '400':
+          $ref: '#/components/responses/bad_request'
+        '5XX':
+          $ref: '#/components/responses/internal_server_error'
+    parameters:
+      - $ref: '#/components/parameters/user_id'
+      - $ref: '#/components/parameters/resource_type'
+      - $ref: '#/components/parameters/sort'
+      - $ref: '#/components/parameters/with_paging'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/per_page'
+      - name: direction
+        in: query
+        description: order of sorted results
+        schema:
+          type: string
+          example: 'desc'
+
+  /v4/user-lists/{list_id}.json:
+    get:
+      operationId: getUserCollectionDetails
+      summary: Retrieve collection details from a specific id.
+      tags:
+        - user-lists
+      responses:
+        '200':
+          $ref: '#/components/responses/collection_details_response'
+        '400':
+          $ref: '#/components/responses/bad_request'
+        '5XX':
+          $ref: '#/components/responses/internal_server_error'
+      parameters:
+        - $ref: '#/components/parameters/list_id'
+        - $ref: '#/components/parameters/sort'
+        - $ref: '#/components/parameters/with_paging'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - name: blocked
+          in: query
+          schema:
+            type: boolean
+            description: Whether or not fetching blocked containers. "true" will retrieve all containers while "false" will only non-blocked containers.
+            example: true
+        - name: with_resources
+          in: query
+          schema:
+            type: boolean
+            description: Whether or not fetching containers.
+            example: true
+        - name: with_upcoming
+          in: query
+          schema:
+            type: boolean
+            description: Whether or not fetching upcoming containers.
+            example: true
+    patch:
+      operationId: patchUserCollectionDetails
+      summary: Update the selected collection.
+      tags:
+        - user-lists
+      responses:
+        '200':
+          $ref: '#/components/responses/update_collection_response'
+        '400':
+          $ref: '#/components/responses/bad_request'
+        '5XX':
+          $ref: '#/components/responses/internal_server_error'
+      parameters:
+        - $ref: '#/components/parameters/list_id'
+        - $ref: '#/components/parameters/app'
+        - $ref: '#/components/parameters/timestamp'
+        - $ref: '#/components/parameters/sig'
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestBody_collection_info'
+    delete:
+      operationId: deleteUserCollectionDetails
+      summary: Delete the selected collection.
+      tags:
+        - user-lists
+      responses:
+        '200':
+          description: Delete collection successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+        '400':
+          $ref: '#/components/responses/bad_request'
+        '5XX':
+          $ref: '#/components/responses/internal_server_error'
+      parameters:
+        - $ref: '#/components/parameters/list_id'
+        - $ref: '#/components/parameters/app'
+        - $ref: '#/components/parameters/timestamp'
+        - $ref: '#/components/parameters/sig'
+        - $ref: '#/components/parameters/token'
+
+  /v4/user-lists/{list_id}/items.json:
+    patch:
+      operationId: patchUserCollectionItems
+      summary: Modify items in the selected collection.
+      tags:
+        - user-lists
+      responses:
+        '200':
+          $ref: '#/components/responses/update_collection_response'
+        '400':
+          $ref: '#/components/responses/bad_request'
+        '5XX':
+          $ref: '#/components/responses/internal_server_error'
+      parameters:
+        - $ref: '#/components/parameters/list_id'
+        - $ref: '#/components/parameters/app'
+        - $ref: '#/components/parameters/timestamp'
+        - $ref: '#/components/parameters/sig'
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resources:
+                  type: array
+                  items:
+                    type: string
+                    example: '10000c'
+    delete:
+      operationId: deleteUserCollectionItems
+      summary: Delete itmes in the selected collection.
+      tags:
+        - user-lists
+      responses:
+        '200':
+          $ref: '#/components/responses/update_collection_response'
+        '400':
+          $ref: '#/components/responses/bad_request'
+        '5XX':
+          $ref: '#/components/responses/internal_server_error'
+      parameters:
+        - $ref: '#/components/parameters/list_id'
+        - $ref: '#/components/parameters/app'
+        - $ref: '#/components/parameters/timestamp'
+        - $ref: '#/components/parameters/sig'
+        - $ref: '#/components/parameters/token'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resources:
+                  type: array
+                  items:
+                    type: string
+                    example: '10000c'
+          
+components:
+  # PARAMETERS
+  parameters:
+    user_id:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: '1234u'
+    list_id:
+      name: list_id
+      in: path
+      required: true
+      schema:
+        type: string
+        example: '1234l'
+    page:
+      name: page
+      in: query
+      description: Used to navigate from page to page.
+      schema:
+        type: integer
+        default: 1
+        example: 1
+    per_page:
+      name: per_page
+      in: query
+      description: Maximum number of items per page.
+      schema:
+        type: integer
+        example: 20
+    with_paging:
+      name: with_paging
+      in: query
+      description: Enable pagination. Default is false.
+      schema:
+        type: boolean
+        default: false
+        example: false
+    sort:
+      name: sort
+      in: query
+      description: Order of the list.
+      schema:
+        type: string
+        example: 'updated_at'
+    app:
+      name: app
+      in: query
+      required: true
+      description: Client registration App ID.
+      schema:
+        type: string
+        example: '999999a' 
+    timestamp:
+      name: t
+      in: query
+      required: true
+      description: User session authentication token.
+      schema:
+        type: integer
+        example: 1582860968 
+    sig:
+      name: sig
+      in: query
+      required: true
+      description: String after sign the API internally in app.
+      schema:
+        type: string
+        example: 'f608b4137897107c33af8290539cfd031624269f' 
+    token:
+      name: token
+      in: query
+      required: true
+      description: User session authentication token.
+      schema:
+        type: string
+        example: 'w89Mnz-_3Kj9VDe3Ss_2u00150k2h8IN004_djAx' 
+    resource_type:
+      name: resource_type
+      in: query
+      schema:
+        type: string
+        enum:
+        - containers
+        - videos
+        - person
+        - content_owners
+        - bricks
+        - list
+        - list_item
+        - tags
+        - works
+        - entertainment_agency
+        - person_roles
+  
+  # SCHEMAS  
+  schemas:
+    requestBody_collection_info:
+      type: object
+      properties:
+        titles:
+          type: object
+          properties:
+            en:
+              type: string
+              example: "Collection Name in English"
+        resource_type:
+          type: string
+          example: 'container'
+        descriptions:
+          type: object
+          properties:
+            en:
+              type: string
+              example: "Collection Description in English"
+        private:
+          type: boolean
+          example: false
+    error_response:
+      type: object
+      required:
+        - error
+        - vcode
+      properties:
+        error:
+          type: string
+          description: not found
+        vcode:
+          type: integer
+          description: '404'
+    
+    collection_page:
+      required:
+        - more
+        - response
+      properties:
+        more:
+          type: boolean
+          description: Whether there are more pages of results after this one.
+        response:
+          type: array
+          description: The items in the list.
+          items:
+            $ref: '#/components/schemas/collection_page_item'
+    collection_page_item:
+      allOf:
+        - type: object
+          required:
+            - id
+            - titles
+            - images
+            - flags
+            - descriptions
+            - resource_id
+            - resource
+            - type
+          properties:
+            id:
+              type: string
+              example: '123456l'
+            titles:
+              $ref: '#/components/schemas/collection_titles'
+            url:
+              $ref: '#/components/schemas/collection_url'
+            descriptions:
+              $ref: '#/components/schemas/collection_descriptions'
+            images: 
+              $ref: '#/components/schemas/collection_images'
+            user:
+              $ref: '#/components/schemas/collection_user'
+            type:
+              type: string
+              example: 'user-list'
+            resource_type: 
+              type: string
+              example: 'container'
+            list_type: 
+              type: string
+              example: user
+            featured: 
+              type: boolean
+            hidden_status: 
+              type: boolean
+            private: 
+              type: boolean
+            is_flagable: 
+              type: boolean
+            privacy: 
+              type: string
+              example: public
+            created_at:
+              type: string
+              format: date
+              example: '2016-02-23T06:47:57Z'
+            updated_at:
+              type: string
+              format: date
+              example: '2019-10-02T18:08:20Z'
+            resource_count:
+              type: integer
+            resources:
+              type: array
+              description: All container ids in the collection.
+              items:
+                type: string
+            stats:
+              $ref: '#/components/schemas/collection_stats'
+    collection_url:
+      type: object
+      properties:
+        web:
+          type: string
+          description: The url on the Viki site.
+        api:
+          type: string
+          description: The url on the Viki API.
+    collection_titles:
+      type: object
+      properties:
+        en:
+          type: string
+        es:
+          type: string
+    collection_descriptions:
+      type: object
+      properties:
+        en:
+          type: string
+        es:
+          type: string
+    collection_images:
+      type: object
+      properties:
+        cover_image:
+          type: object
+          properties:
+            url:
+              type: string
+              description: The url of this video's poster image.
+            source:
+              type: string
+              description: Where this poster image came from.
+    collection_user:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '1234u'
+        username:
+          type: string
+          example: 'name'
+        images:
+          type: object
+          properties:
+            avatar:
+              type: object
+              properties:
+                url:
+                  type: string
+    collection_stats:
+      type: object
+      properties:
+        flags:
+          type: object
+          properties:
+            inappropriate:
+              type: integer
+            advertisement:
+              type: integer
+            total:
+              type: integer
+        subscriptions:
+          type: object
+          properties:
+            total:
+              type: integer
+
+    collection_details:
+      type: object
+      properties:
+        pagination:
+          type: object
+          properties:
+            previous:
+              type: string
+              description: endpoint to retrieve previous page
+            next:
+              type: string
+              description: endpoint to retrieve next page
+        count:
+          type: integer
+          description: Total amount of available containers
+        more:
+          type: boolean
+          description: Whether there are more pages of results after this one.
+        details:
+          $ref: '#/components/schemas/collection_page_item'
+        response:
+          type: array
+          description: The containers in the listing.
+          items:
+            $ref: "#/components/schemas/container_details"
+    container_details:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              description: The container's ID.
+            type:
+              type: string
+              description: The type of the container.
+              enum:
+                - artist
+                - film
+                - news
+                - series
+            subtype:
+              type: string
+              description: The subtype of the container.
+              enum:
+                - normal
+                - creators
+            content_owners:
+              type: array
+              items:
+                $ref: "#/components/schemas/container_content_owner"
+            origin:
+              type: object
+              properties:
+                country:
+                  type: string
+                  description: The origin country of the container.
+                language:
+                  type: string
+                  description: The origin language of the container.
+            created_at:
+              type: string
+              description: ISO 8601-format date and time when this container was created.
+            updated_at:
+              type: string
+              description: ISO 8601-format date and time when this container was last
+                updated.
+            subscriptions:
+              type: object
+              properties:
+                count:
+                  type: integer
+                  description: The number of users who have subscribed to updates from this
+                    container.
+            contributors:
+              type: object
+              properties:
+                count:
+                  type: integer
+                  description: The number of users who have contributed subtitles or
+                    segments to this container.
+            team:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the community team managing this container.
+            titles:
+              type: object
+              description: This container's titles, keyed by language.
+            images:
+              type: object
+              properties:
+                poster:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                      description: The url of this container's poster image.
+                    source:
+                      type: string
+                      description: Where this poster image came from.
+            descriptions:
+              type: object
+              description: Plain-text descriptions of this container, keyed by language.
+            genres:
+              type: array
+              items:
+                type: string
+              description: IDs of the genres of this container.
+            subtitle_completions:
+              type: object
+              description: Completion percentages of the subtitles of this container, keyed
+                by language.
+            managers:
+              type: array
+              description: The channel managers of this container.
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The ID of this user.
+                  username:
+                    type: string
+                    description: The username of this user.
+                  images:
+                    type: object
+                    properties:
+                      avatar:
+                        type: object
+                        properties:
+                          url:
+                            type: string
+                            description: The url of this user's avatar image.
+                  url:
+                    type: object
+                    properties:
+                      web:
+                        type: string
+                        description: The url to this user's profile on the Viki site.
+                      api:
+                        type: string
+                        description: The url to this user on the Viki API.
+            url:
+              type: object
+              properties:
+                web:
+                  type: string
+                  description: The URL to this container on the Viki site.
+                api:
+                  type: string
+                  description: The URL to this container on the Viki API.
+                fb:
+                  type: string
+                  description: The canonical URL to this container, suitable for sharing on
+                    social networks.
+            flags:
+              type: object
+              properties:
+                licensed:
+                  type: boolean
+                  description: Whether this container is licensed from the content provider
+                    (if true) or a fan channel (if false).
+                hosted:
+                  type: boolean
+                  description: Whether this container's content is hosted by Viki.
+                state:
+                  type: string
+                  description: The state of this container.
+                  enum:
+                    - normal
+                    - pending
+                adult:
+                  type: boolean
+                  description: Whether this container contains content which is not family
+                    friendly.
+                on_air:
+                  type: boolean
+                  description: Whether this container's content is currently on-air.
+                original:
+                  type: boolean
+                  description: Whether this show is original to Viki
+                exclusive:
+                  type: boolean
+                  description: Whether this show is exclusive to Viki
+            rating:
+              type: string
+              description: The content rating of this container.
+            verticals:
+              type: array
+              items:
+                $ref: "#/components/schemas/container_vertical"
+            upcoming_verticals:
+              type: array
+              items:
+                $ref: "#/components/schemas/container_vertical"
+            review_stats:
+              type: object
+              properties:
+                average_rating:
+                  type: number
+                  description: The average review score of this container, out of 10.
+                count:
+                  type: integer
+                  description: The number of reviews this container has.
+            videoType:
+              type: object
+              description: This object key will differ depending on the container type,
+                reflecting the type of videos it contains. It will be one of
+                `episodes`, `movies`, `music_videos`, or `news_clips`.
+              properties:
+                count:
+                  type: integer
+                  description: The number of videos this container currently has.
+                url:
+                  type: object
+                  properties:
+                    api:
+                      type: string
+                      description: The URL to this container's videos on the API.
+            trailers:
+              type: object
+              description: Information on any trailers this container has. This key will
+                not be included if there are no trailers.
+              properties:
+                count:
+                  type: integer
+                  description: The number of trailers this container has.
+                url:
+                  type: object
+                  properties:
+                    api:
+                      type: string
+                      description: The URL to this container's trailers on the API.
+            clips:
+              type: object
+              description: Information on any clips this container has. This key will not
+                be included if there are no clips.
+              properties:
+                count:
+                  type: integer
+                  description: The number of clips this container has.
+                url:
+                  type: object
+                  properties:
+                    api:
+                      type: string
+                      description: The URL to this container's clips on the API.
+            titles_aka:
+              type: object
+              description: Alternate titles for this container, keyed by language.
+            titles_phonetic:
+              type: object
+              description: Phonetic titles for this container, keyed by language.
+            day_of_week:
+              type: array
+              items:
+                type: string
+              description: For series, the days of the week on which new episodes will be
+                released.
+            planned_episodes:
+              type: integer
+              description: For series, the number of episodes this container is expected to
+                have.
+            distributors:
+              type: array
+              description: The distributors of this container's content.
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: The type of distributor.
+                  name:
+                    type: string
+                    description: The name of this distributor.
+                  from:
+                    type: string
+                    description: ISO 8601-format date that distribution starts on.
+                  to:
+                    type: string
+                    description: ISO 8601-format date that distribution ends on.
+            watch_now:
+              $ref: "#/components/schemas/container_watch_now_details"
+            viki_air_time:
+              type: integer
+              description: The Unix timestamp that this container is available from.
+            watch_next:
+              $ref: "#/components/schemas/container_watch_next_details"
+        - $ref: "#/components/schemas/container_blocking_info"
+    container_content_owner:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 1co
+        country:
+          type: string
+          description: country where the content owner owns the content, if key not exist meaning the content owner owns it worldwide.
+    container_vertical:
+      type: object
+      properties:
+        effective_from:
+          type: string
+          format: date-time
+        free:
+          type: integer
+        id:
+          type: string
+          description: same as vertical_id
+          example: 1pv
+        released_at:
+          type: string
+          format: date-time
+        timed:
+          type: integer
+        type:
+          type: string
+          example: vertical
+        url:
+          type: object
+          properties:
+            api:
+              type: string
+            web:
+              type: string
+        vertical_id:
+          type: string
+          example: '1pv'
+    container_watch_now_details:
+      type: object
+      description: The latest available video in this container.
+      allOf:
+        - $ref: "#/components/schemas/container_video_short_listing"
+    container_watch_next_details:
+      type: object
+      description: The next upcoming video in this container.
+      allOf:
+        - $ref: "#/components/schemas/container_video_short_listing"
+    container_video_short_listing:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of this video.
+        type:
+          type: string
+          description: The type of this video.
+          enum:
+            - clip
+            - episode
+            - music_video
+            - movie
+            - news_clip
+            - trailer
+        url:
+          type: object
+          properties:
+            web:
+              type: string
+              description: The URL of this video on Viki's site.
+            api:
+              type: string
+              description: The URL of this video on the Viki API.
+    container_blocking_info:
+      type: object
+      properties:
+        blocked:
+          type: boolean
+          description: Whether this content is currently blocked for the calling app and
+            user.
+        blocking:
+          type: object
+          properties:
+            geo:
+              type: boolean
+              description: Whether this content is currently geo-blocked. Ignore if the
+                `upcoming` flag is true.
+            paywall:
+              type: boolean
+              description: Whether this content is currently behind a paywall that the user
+                does not have.
+            upcoming:
+              type: boolean
+              description: Whether this content is still upcoming for the calling
+                app/country context.
+  
+  # RESPONSES  
+  responses:
+    'update_collection_response':
+      description: The response when successfully created a collection.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ok: 
+                type: boolean
+                description: If process succeed. 
+                example: true
+              id:
+                type: string
+                description: ID of the new collection.
+                example: "1234l"
+    'collection_page_response':
+      description: List of collections, returned on success.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/collection_page'
+    'collection_details_response':
+      description: Collection details, returned on success.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/collection_details'
+    'bad_request':
+      description: Bad request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error_response'
+    'internal_server_error':
+      description: Unexpected error.
